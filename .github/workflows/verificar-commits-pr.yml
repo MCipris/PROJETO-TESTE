@@ -1,0 +1,28 @@
+name: Validar Mensagens de Commit no PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validar-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Baixa o histórico para conseguirmos ler os commits do PR
+
+      - name: Configurar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Executar script de validação
+        env:
+          # O GitHub Actions fornece esse token automaticamente para podermos consultar a API sem erro de limite
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Passa o número do PR e o repositório como variáveis de ambiente
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python scripts/script-valida-pr.py
