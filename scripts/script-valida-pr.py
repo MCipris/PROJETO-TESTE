@@ -24,19 +24,17 @@ def issue_existe_no_github(repo, token, numero_issue):
     return False
 
 def obter_mensagens_commits():
-    # Comando Git para pegar as mensagens de todos os commits que estão no PR atual
-    # em relação à branch de destino (ex: main)
+    branch_destino = os.environ.get("TARGET_BRANCH", "main")
+    
     try:
         resultado = subprocess.run(
-            ["git", "log", "origin/main..HEAD", "--format=%s"],
+            ["git", "log", f"origin/{branch_destino}..HEAD", "--format=%s"],
             capture_output=True, text=True, check=True
         )
-        # Retorna uma lista de mensagens tirando linhas em branco
         return [linha.strip() for linha in resultado.stdout.split('\n') if linha.strip()]
     except Exception as e:
-        # Fallback caso a branch principal mude de nome (ex: master)
         resultado = subprocess.run(
-            ["git", "log", "-1", "--format=%s"], # Valida pelo menos o último commit se falhar
+            ["git", "log", "-1", "--format=%s"],
             capture_output=True, text=True, check=True
         )
         return [resultado.stdout.strip()]
@@ -59,12 +57,12 @@ def main():
             print(f"-> Verificando se a issue #{numero_issue} existe em {repo}...")
             
             if issue_existe_no_github(repo, token, numero_issue):
-                print("-> ✅ Código e Issue válidos!")
+                print("-> Código e Issue válidos!")
             else:
-                print(f"-> ❌ ERRO: A issue #{numero_issue} NÃO existe no GitHub.")
+                print(f"-> ERRO: A issue #{numero_issue} NÃO existe no GitHub.")
                 sucesso_geral = False
         else:
-            print("-> ❌ ERRO: Mensagem fora do padrão! Deve começar com '#NUM - '")
+            print("-> ERRO: Mensagem fora do padrão! Deve começar com '#NUM - '")
             sucesso_geral = False
 
     if not sucesso_geral:
